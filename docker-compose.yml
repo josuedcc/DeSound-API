@@ -1,0 +1,46 @@
+version: "3"
+services:
+    phpfpm:
+            image: php:fpm
+            ports:
+                - "9000:9000"
+            volumes:
+                - ./public:/var/www/html
+    nginx:
+        image: nginx:latest
+        ports:
+            - '80:80'
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+            - ./logs/nginx:/var/log/nginx
+            - ./public:/var/www/html
+        links:
+            - phpfpm
+        depends_on:
+            - phpfpm
+        restart: always
+    mysql:
+        image: mysql
+        ports:
+            - '3306:3306'
+        restart: always
+        container_name: db_mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: admin
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: always
+        links:
+            - mysql
+        container_name: myadmin
+        volumes:
+            - /sessions
+        ports:
+            - 8090:80
+        environment:
+            PMA_HOST: db_mysql
+            PMA_USER: root
+            PMA_PASSWORD: admin
+            PMA_ARBITRARY: 1
+        depends_on:
+            - mysql
